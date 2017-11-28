@@ -85,6 +85,10 @@ func backlogInfo(rtm *slack.RTM, msg *slack.MessageEvent, prefix string) {
 	text = strings.TrimSpace(text)
 	text = strings.ToLower(text)
 
+	// backlog_api_key := os.Getenv("BACKLOG_API_KEY")
+	// resource := "space"
+	// backlog_space_url := "https://tenso.backlog.jp/api/v2/" + resource + "?apiKey=" + backlog_api_key
+
 	basicInfomation := map[string]bool{
 		"基本情報": true,
 	}
