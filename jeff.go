@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	// https://[team-name].slack.com/apps/manage/custom-integrations -> Bots
 	"github.com/nlopes/slack"
 )
 
