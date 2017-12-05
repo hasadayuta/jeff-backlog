@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	// https://[team-name].slack.com/apps/manage/custom-integrations -> Bots
+	"github.com/bitly/go-simplejson"
 	"github.com/nlopes/slack"
 )
 
@@ -86,16 +91,37 @@ func backlogInfo(rtm *slack.RTM, msg *slack.MessageEvent, prefix string) {
 	text = strings.TrimSpace(text)
 	text = strings.ToLower(text)
 
-	// backlog_api_key := os.Getenv("BACKLOG_API_KEY")
-	// resource := "space"
-	// backlog_space_url := "https://tenso.backlog.jp/api/v2/" + resource + "?apiKey=" + backlog_api_key
-
 	basicInfomation := map[string]bool{
 		"基本情報": true,
 	}
 
 	if basicInfomation[text] {
-		response = "Backlog APIのレスポンスをparseして返します"
+		resource := "space"
+		backlog_api_key := os.Getenv("BACKLOG_API_KEY")
+		url := "https://tenso.backlog.jp/api/v2/" + resource + "?apiKey=" + backlog_api_key
+
+		res, err := http.Get(url)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		js, err := simplejson.NewJson(body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		name := js.Get("name").MustString()
+		textFormattingRule := js.Get("textFormattingRule").MustString()
+		created_at := js.Get("created").MustString()
+		rep := regexp.MustCompile(`T[0-9:A-Za-z]*`)
+		created_at = rep.ReplaceAllString(created_at, "")
+
+		response = "チーム名:  " + name + "\n" + "登録日:  " + created_at + "\n" + textFormattingRule + "で書けるようになっているぞ！"
 		rtm.SendMessage(rtm.NewOutgoingMessage(response, msg.Channel))
 	}
 }
